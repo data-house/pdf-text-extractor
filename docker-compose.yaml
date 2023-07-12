@@ -1,0 +1,16 @@
+version: '3'
+
+networks:
+  web:
+    driver: bridge
+
+services:
+  app:
+    image: "ghcr.io/data-house/pdf-text-extractor:main"
+    environment:
+      GUNICORN_WORKERS: 2
+      GUNICORN_WORKERS_TIMEOUT: 600
+    networks:
+      - web
+    ports:
+      - "5200:5000"

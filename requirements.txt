@@ -1,0 +1,6 @@
+Flask==2.3.2
+pandas==2.0.2
+pymupdf==1.22.5
+numpy~=1.24.3
+requests==2.31.0
+gunicorn==20.1.0; platform_system != "Windows"

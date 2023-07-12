@@ -1,0 +1,6 @@
+* text=auto eol=lf
+
+*.py diff=py
+
+/.github export-ignore
+CHANGELOG.md export-ignore
