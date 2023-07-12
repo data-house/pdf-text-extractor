@@ -1,10 +1,31 @@
+[![CI](https://github.com/data-house/pdf-text-extractor/actions/workflows/ci.yml/badge.svg)](https://github.com/data-house/pdf-text-extractor/actions/workflows/ci.yml) [![Build Docker Image](https://github.com/data-house/pdf-text-extractor/actions/workflows/docker.yml/badge.svg)](https://github.com/data-house/pdf-text-extractor/actions/workflows/docker.yml)
+
 # PDF Text extraction service for Data House
 
 Extract text from PDFs keeping page information.
 
 ## Getting started
 
-_to be documented_
+The PDF Text Extraction service is available as a Docker image.
+
+```bash
+docker pull ghcr.io/data-house/pdf-text-extractor:main
+```
+
+A sample [`docker-compose.yaml` file](./docker-compose.yaml) is available within the repository.
+
+
+> Please refer to [Releases](https://github.com/data-house/pdf-text-extractor/releases) and [Packages](https://github.com/data-house/pdf-text-extractor/pkgs/container/pdf-text-extractor) for the available tags.
+
+
+**Available environment variables**
+
+| variable | default | description |
+|------|---------|-------------|
+| `GUNICORN_WORKERS` | 2 | The number of [Gunicorn](https://docs.gunicorn.org/en/latest/settings.html#worker-class) sync workers |
+| `GUNICORN_WORKERS_TIMEOUT` | 600 | The timeout, in seconds, of each worker |
+
+
 
 ## Usage
 
