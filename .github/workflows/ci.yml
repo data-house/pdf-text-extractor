@@ -1,0 +1,26 @@
+name: CI
+
+on: 
+  push:
+    branches: 
+      - "main"
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  lint:
+    name: Lint Shell scripts
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: true
+      matrix:
+        python: [3.9]
+    
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 1
+
+    - name: Lint the Shell scripts
+      run: shellcheck ./gunicorn.sh
