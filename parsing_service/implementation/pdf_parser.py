@@ -1,3 +1,4 @@
+import os
 import re
 from typing import List
 
@@ -16,8 +17,16 @@ class PDFParser(Parser):
     def parse(self, filename: str) -> List[AChunk]:
         pdf = fitz.open(filename)
         documents = []
+        skipping = False
         for page in pdf:
             text = page.get_text()
+            if os.environ.get("REMOVE_METHODOLOGY_CHAPTER", "True").lower() == "true":
+                if text.startswith("2 EVALUIERUNGSDESIGN UND METHODOLOGIE"):
+                    skipping = True
+                if text.startswith("3 ERGEBNISSE DER EVALUIERUNG"):
+                    skipping = False
+            if skipping:
+                continue
             # Merge hyphenated words
             text = re.sub(r"(\w+)-\n(\w+)", r"\1\2", text)
             # Fix newlines in the middle of sentences
