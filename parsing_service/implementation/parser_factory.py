@@ -15,5 +15,6 @@ def parse_file(filename: str, filetype: str) -> List[AChunk]:
         raise ValueError(f"Invalid filetype {filetype}")
 
     parser = PDFParser()
-    context = parser.parse(filename)
+    context = parser.parsePdfMiner(filename)
     return context
+
