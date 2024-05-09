@@ -7,12 +7,10 @@ import fitz
 from pypdf import PdfReader
 from PyPDF2 import PdfReader as pdf2
 from pdfminer.high_level import extract_pages
-from pdfminer.high_level import extract_text as et
 from pdfminer.layout import LTTextContainer
 import tabula
 
 import pdfplumber
-import py_pdf_parser
 from py_pdf_parser.loaders import load_file
 from parsing_service.implementation.chunk import Chunk
 from parsing_service.models.chunck import AChunk
@@ -154,7 +152,6 @@ class PDFParser(Parser):
         return documents
 
     def pyTabula(self, filename: str) -> pd.Series:
-
         dfs = tabula.read_pdf(filename, pages='all')
         series_data = pd.Series(dfs)
         return series_data
