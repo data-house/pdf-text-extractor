@@ -2,6 +2,8 @@ import os
 import re
 from typing import List
 import pandas as pd
+import subprocess
+import json
 
 import fitz
 from pypdf import PdfReader
@@ -156,6 +158,22 @@ class PDFParser(Parser):
         series_data = pd.Series(dfs)
         return series_data
 
+    def pdfAct(self, filename: str):
+        output = os.path.splitext(filename)[0]
+        command = f"docker run --rm -v /Users/annamarika/PycharmProjects/text-extractor/samples:/app/pdfs parser " \
+                  f"java -jar ./pdfact.jar --format json /app/pdfs/{filename} /app/pdfs/{output}.json"
+
+        try:
+            subprocess.check_output(command, shell=True)
+
+            output_path = f"/Users/annamarika/PycharmProjects/text-extractor/samples/{output}.json"
+            if os.path.exists(output_path):
+                return output_path
+            else:
+                raise FileNotFoundError(f"File JSON non trovato: {output_path}")
+        except subprocess.CalledProcessError as e:
+            print("Errore durante l'esecuzione del comando:", e.output.decode())
+            return None
 
 
 
