@@ -1,11 +1,11 @@
-from parsing_service.implementation.parser_factory import parse_file
+from parsing_service.implementation.parser_factory import parse_file, parse_file_to_json
 import json
 import pandas as pd
 import os
 
-# se utilizzi pdfAct non serve il path
 file = "base.pdf"
-parsed_file = parse_file(file, "pdf")
+path = "/Users/annamarika/PycharmProjects/text-extractor/samples"
+parsed_file = parse_file_to_json(path, file, "pdf")
 print(parsed_file)
 
 if isinstance(parsed_file, pd.Series):

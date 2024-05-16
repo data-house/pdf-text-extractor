@@ -15,6 +15,21 @@ def parse_file(filename: str, filetype: str) -> List[AChunk]:
         raise ValueError(f"Invalid filetype {filetype}")
 
     parser = PDFParser()
-    context = parser.pdfAct(filename)
+    context = parser.parse(filename)
     return context
 
+
+def parse_file_to_json(filepath: str, filename: str, filetype: str):
+    """
+    Parse the given file and return a json.
+    :param filepath: The path of the file to parse
+    :param filename: The name of the file to parse.
+    :param filetype: The type of the file to parse.
+    :return: A list of extracted chunks.
+    """
+    if filetype != "pdf":
+        raise ValueError(f"Invalid filetype {filetype}")
+
+    parser = PDFParser()
+    context = parser.pdfAct(filepath, filename)
+    return context
