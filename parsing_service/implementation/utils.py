@@ -110,3 +110,16 @@ def json_formatter(json_file):
     paragraphs = {'paragraphs': output}
     output_json = json.dumps(paragraphs, indent=2)
     return output_json
+
+
+def repeat_json_formatter(json_file):
+    previous_length = None
+    current_json = json_file
+    current_length = len(current_json["paragraphs"])
+
+    while previous_length is None or previous_length != current_length:
+        previous_length = current_length
+        current_json = json.loads(json_formatter(current_json))
+        current_length = len(current_json["paragraphs"])
+
+    return current_json

@@ -18,3 +18,7 @@ class Parser(ABC):
         :return: a list of chunk extracted from the document.
         """
         pass
+
+    @abstractmethod
+    def parse_to_json(self, filename: str):
+        pass

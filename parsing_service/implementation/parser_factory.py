@@ -2,6 +2,7 @@ from typing import List
 
 from parsing_service.implementation.pdf_parser import PDFParser
 from parsing_service.models.chunck import AChunk
+from parsing_service.implementation.utils import repeat_json_formatter as json_formatter
 
 
 def parse_file(filename: str, filetype: str) -> List[AChunk]:
@@ -19,17 +20,17 @@ def parse_file(filename: str, filetype: str) -> List[AChunk]:
     return context
 
 
-def parse_file_to_json(filepath: str, filename: str, filetype: str):
+def parse_file_to_json(filename: str, filetype: str):
     """
-    Parse the given file and return a json.
-    :param filepath: The path of the file to parse
+    Parses the given file and returns the data as JSON.
     :param filename: The name of the file to parse.
     :param filetype: The type of the file to parse.
-    :return: A list of extracted chunks.
+    :return: The parsed data in JSON format.
     """
     if filetype != "pdf":
         raise ValueError(f"Invalid filetype {filetype}")
 
     parser = PDFParser()
-    context = parser.pdfAct(filepath, filename)
-    return context
+    context = parser.parse_to_json(filename)
+    file_json = json_formatter(context)
+    return file_json
