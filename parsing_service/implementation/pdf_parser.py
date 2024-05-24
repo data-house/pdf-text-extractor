@@ -1,9 +1,7 @@
 import os
 import re
 from typing import List
-import pandas as pd
-import subprocess
-import json
+import requests
 
 import fitz
 
@@ -48,22 +46,29 @@ class PDFParser(Parser):
             documents.append(Chunk(text, {"page_number": page.number + 1}))
         return documents
 
-    def parse_to_json(self, filename: str):
-        filepath = os.path.dirname(filename)
-        filename = os.path.basename(filename)
-        output = os.path.splitext(filename)[0]
-        command = f"docker run --rm -v {filepath}:/app/pdfs parser " \
-                  f"java -jar ./pdfact.jar --format json /app/pdfs/{filename} /app/pdfs/{output}.json"
+    def parse_to_json(self, filename: str, unit: str = None, roles: str = None):
+        url = "http://127.0.0.1:4567/api/pdf/parse"
+        body = {
+            "url": filename
+        }
+
+        if unit is not None:
+            body["unit"] = unit
+
+        if roles is not None:
+            if isinstance(roles, list) and all(isinstance(role, str) for role in roles):
+                body["roles"] = roles
+            else:
+                print("Error: roles is not a list of string")
+                return None
 
         try:
-            subprocess.check_output(command, shell=True)
 
-            output_path = f"{filepath}/{output}.json"
-            if os.path.exists(output_path):
-                with open(output_path, 'r') as json_file:
-                    return json.load(json_file)
-            else:
-                raise FileNotFoundError(f"JSON file not found: {output_path}")
-        except subprocess.CalledProcessError as e:
-            print("Error occurred while executing the command:", e.output.decode())
+            response = requests.post(url, json=body)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            print(f"Errore nella richiesta: {e}")
             return None
+
+

@@ -20,5 +20,5 @@ class Parser(ABC):
         pass
 
     @abstractmethod
-    def parse_to_json(self, filename: str):
+    def parse_to_json(self, filename: str, unit: str = None, roles: list = None):
         pass
