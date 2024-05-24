@@ -6,6 +6,16 @@ def extract_positions(paragraph):
     return positions
 
 
+def extract_color(paragraph):
+    color = paragraph["paragraph"]["color"]
+    return color
+
+
+def extract_font(paragraph):
+    font = paragraph["paragraph"]["font"]
+    return font
+
+
 def extract_minY(position):
     return position["minY"]
 
@@ -64,6 +74,8 @@ def compare_paragraphs(p1, p2):
 
 def union_paragraphs(p1, p2):
     role = extract_role(p1)
+    color = extract_color(p1)
+    font = extract_font(p1)
     positions1 = extract_positions(p1)
     positions2 = extract_positions(p2)
     text1 = extract_text(p1)
@@ -72,8 +84,10 @@ def union_paragraphs(p1, p2):
     paragraph = {
         "paragraph": {
             "role": role,
+            "color": color,
             "positions": positions1 + positions2,
-            "text": text1 + '\n\n' + text2
+            "text": text1 + '\n\n' + text2,
+            "font": font
         }
     }
 
@@ -82,6 +96,8 @@ def union_paragraphs(p1, p2):
 
 def json_formatter(json_file):
     output = []
+    fonts = json_file["fonts"]
+    colors = json_file["colors"]
     i = 0
     while i < len(json_file["paragraphs"][:-1]):
         paragraph1 = json_file["paragraphs"][i]
@@ -107,7 +123,7 @@ def json_formatter(json_file):
                 output.append(json_file["paragraphs"][i + 1])
         i += 1
 
-    paragraphs = {'paragraphs': output}
+    paragraphs = {'fonts': fonts, 'paragraphs': output, 'colors': colors}
     output_json = json.dumps(paragraphs, indent=2)
     return output_json
 
