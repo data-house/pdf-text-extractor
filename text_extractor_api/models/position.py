@@ -7,4 +7,4 @@ class Position(BaseModel):
     minX: Optional[float] = None
     maxY: Optional[float] = None
     maxX: Optional[float] = None
-    page: int
+

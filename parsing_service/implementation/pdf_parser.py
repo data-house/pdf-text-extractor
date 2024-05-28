@@ -6,7 +6,7 @@ import requests
 import fitz
 
 from parsing_service.implementation.chunk import Chunk
-from parsing_service.models.chunck import AChunk
+from parsing_service.models.chunk import AChunk
 from parsing_service.models.parser import Parser
 
 

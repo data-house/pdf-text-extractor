@@ -6,9 +6,14 @@ from text_extractor_api.models import Color
 from text_extractor_api.models import Font
 
 
-class Paragraph(BaseModel):
+class Metadata(BaseModel):
     role: Optional[str] = None
     color: Optional[Color] = None
-    positions: List[Position]
-    text: str
+    positions: Optional[List[Position]]
     font: Optional[Font] = None
+    page: int
+
+
+class Paragraph(BaseModel):
+    text: str
+    metadata: Metadata

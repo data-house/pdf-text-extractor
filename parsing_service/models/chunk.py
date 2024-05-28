@@ -8,15 +8,13 @@ class AChunk(ABC):
     Abstract class to represent a chunk of a document
     """
 
-    def __init__(self, text: str, metadata: dict = None, embedded_vector: List[float] = None):
+    def __init__(self, text: str, metadata: dict = None):
         """
         :param text: the text contained in the chunk.
         :param metadata: additional data to identify the chunk in a document.
-        :param embedded_vector: the embedding of text.
         """
         self.text = text
         self.metadata = metadata
-        self.embedded_vector = embedded_vector
 
     def __str__(self) -> str:
         """

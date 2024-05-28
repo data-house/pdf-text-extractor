@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from parsing_service.models.chunck import AChunk
+from parsing_service.models.chunk import AChunk
 
 
 class Parser(ABC):
