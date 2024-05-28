@@ -1,13 +1,10 @@
 import json
-from abc import ABC
-from typing import List
 
 
-class AChunk(ABC):
+class Chunk:
     """
-    Abstract class to represent a chunk of a document
+    A chunk of text
     """
-
     def __init__(self, text: str, metadata: dict = None):
         """
         :param text: the text contained in the chunk.

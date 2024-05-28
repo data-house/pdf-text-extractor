@@ -1,4 +1,4 @@
-from text_extractor_api.models import Color, Font, Position, Paragraph, Document
+from parsing_service.models import Color, Font, Position, Metadata, Paragraph, Document
 
 
 def convert_json_to_document(json_data: dict) -> Document:
@@ -16,43 +16,55 @@ def convert_json_to_document(json_data: dict) -> Document:
         font_id = paragraph_detail['font']['id']
         font = next((f for f in fonts if f.id == font_id), None)
 
-        positions = [Position(**pos) for pos in paragraph_detail.get('positions', [])]
+        positions = [
+            Position(
+                minY=pos['minY'],
+                minX=pos['minX'],
+                maxY=pos['maxY'],
+                maxX=pos['maxX']
+            ) for pos in paragraph_detail.get('positions', [])
+        ]
 
-        paragraph = Paragraph(
+        page = paragraph_detail['positions'][0]['page'] if paragraph_detail.get('positions') else None
+
+        metadata = Metadata(
             role=paragraph_detail['role'],
             color=color,
             positions=positions,
+            font=font,
+            page=page
+        )
+        paragraph = Paragraph(
             text=paragraph_detail['text'],
-            font=font
+            metadata=metadata
         )
 
         paragraphs.append(paragraph)
 
     document = Document(
         fonts=fonts,
-        paragraphs=paragraphs,
+        text=paragraphs,
         colors=colors
     )
 
     return document
 
 
-def convert_to_document(doc_parsed) -> Document:
+def convert_to_document(doc_parsed: dict) -> Document:
     paragraphs = []
     for page in doc_parsed.get('content', []):
         page_number = page['metadata']['page_number']
 
-        position = Position(page=page_number)
+        metadata = Metadata(page=page_number)
 
         paragraph = Paragraph(
-            positions=[position],
-            text=page['text']
+            text=page['text'],
+            metadata=metadata
         )
 
         paragraphs.append(paragraph)
 
     document = Document(
-        paragraphs=paragraphs,
+        text=paragraphs,
     )
     return document
-

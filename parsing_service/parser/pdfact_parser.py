@@ -1,11 +1,13 @@
 import requests
 
 from parsing_service.parser.pdf_parser import PDFParser
+from parsing_service.parser.parser_utils import convert_json_to_document
+from parsing_service.models import Document
 
 
 class PdfactParser(PDFParser):
 
-    def parse(self, filename: str, **kwargs) -> list:
+    def parse(self, filename: str, **kwargs) -> Document:
         url = "http://127.0.0.1:4567/api/pdf/parse"
         body = {"url": filename}
         unit = kwargs.get("unit", None)
@@ -19,7 +21,8 @@ class PdfactParser(PDFParser):
         res = response.json()
         if unit == 'paragraph' or unit is None:
             res = pdfact_formatter(res)
-        return res
+        document = convert_json_to_document(res)
+        return document
 
 
 def pdfact_formatter(json_file):

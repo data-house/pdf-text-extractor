@@ -1,15 +1,15 @@
 from typing import List, Optional
 from pydantic import BaseModel
 
-from text_extractor_api.models import Position
-from text_extractor_api.models import Color
-from text_extractor_api.models import Font
+from parsing_service.models import Position
+from parsing_service.models import Color
+from parsing_service.models import Font
 
 
 class Metadata(BaseModel):
     role: Optional[str] = None
     color: Optional[Color] = None
-    positions: Optional[List[Position]]
+    positions: Optional[List[Position]] = None
     font: Optional[Font] = None
     page: int
 

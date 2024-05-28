@@ -1,9 +1,11 @@
 import re
-from abc import ABC
+from abc import ABC, abstractmethod
+from parsing_service.models import Document
 
 
 class PDFParser(ABC):
-    def parse(self, filename: str, **kwargs) -> list:
+    @abstractmethod
+    def parse(self, filename: str, **kwargs) -> Document:
         pass
 
 

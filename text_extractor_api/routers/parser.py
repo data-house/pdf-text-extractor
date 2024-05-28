@@ -3,12 +3,13 @@ import logging
 import os
 
 import requests
-from fastapi import APIRouter, HTTPException, requests
+from fastapi import APIRouter, HTTPException
 from requests.exceptions import HTTPError, Timeout
 
-from parsing_service.implementation.parser_factory import parse_file_to_json, parse_file
-from text_extractor_api.models import Document, ExtractTextRequest
-from text_extractor_api.routers.parser_utils import convert_json_to_document, convert_to_document
+from parsing_service.parser.pdfact_parser import PdfactParser
+from parsing_service.parser.pymupdf_parser import PymupdfParser
+from text_extractor_api.models import ExtractTextRequest
+from parsing_service.models import Document
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -55,12 +56,11 @@ async def parse_pdf(request: ExtractTextRequest) -> Document:
     try:
         document = None
         if request.driver.lower() == "pdfact":
-            file_json = parse_file_to_json(filename=request.path, unit=request.unit, roles=request.roles)
-            document = convert_json_to_document(file_json)
+            parser = PdfactParser()
+            document = parser.parse(filename=request.path, unit=request.unit, roles=request.roles)
         elif request.driver.lower() == "pymupdf":
-            doc_parsed = parse_file(filename=file_path)
-            doc_parsed = {"status": "ok", "content": [chunk.to_dict() for chunk in doc_parsed]}
-            document = convert_to_document(doc_parsed)
+            parser = PymupdfParser()
+            document = parser.parse(filename=file_path)
     except Exception as err:
         logger.exception(f"Error while parsing file. {str(err)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Error while parsing file")
