@@ -6,6 +6,9 @@ from parsing_service.parser.pdf_parser import PDFParser
 from parsing_service.parser.parser_utils import convert_json_to_document
 from parsing_service.models import Document
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class PdfactParser(PDFParser):
@@ -29,7 +32,7 @@ class PdfactParser(PDFParser):
             document = convert_json_to_document(res)
             return document
         except RequestException as e:
-            print(f"An error occurred while trying to reach the API: {e}")
+            logger.exception(f"An error occurred while trying to reach the API: {e}", exc_info=True)
             raise HTTPException(status_code=503, detail="Error while trying to reach the API")
 
 
