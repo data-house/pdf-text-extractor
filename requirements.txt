@@ -6,3 +6,4 @@ requests==2.31.0
 gunicorn==20.1.0; platform_system != "Windows"
 fastapi~=0.111.0
 pydantic~=2.7.1
+uvicorn==0.22.0

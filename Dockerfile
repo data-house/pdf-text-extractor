@@ -11,9 +11,6 @@ ENV PATH="/opt/venv/bin:$PATH"
 COPY requirements.txt .
 RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
-# Immagine che contiene il jar di pdfact
-FROM docker.oneofftech.xyz/data-house/pdf-act:latest AS pdfact
-
 FROM python:3.9.17-slim-bullseye AS runtime-image
 
 LABEL maintainer="OneOffTech <info@oneofftech.xyz>" \
@@ -23,7 +20,7 @@ LABEL maintainer="OneOffTech <info@oneofftech.xyz>" \
   org.label-schema.vcs-url="https://github.com/data-house/pdf-text-extractor"
 
 RUN apt-get update -yqq && \
-    apt-get install -yqq --no-install-recommends tini maven \
+    apt-get install -yqq --no-install-recommends tini \
     && apt-get autoremove -yq --purge \
     && apt-get autoclean -yq \
     && apt-get clean \
@@ -34,9 +31,10 @@ WORKDIR /app
 
 # copy dependency form build-image
 COPY --from=build-image /opt/venv /opt/venv
-COPY --from=pdfact /bin/pdfact.jar ./pdfact.jar
 ENV PATH="/opt/venv/bin:$PATH"
 
+
+COPY text_extractor_api/ text_extractor_api/
 COPY parsing_service/ parsing_service/
 COPY root.py gunicorn.sh ./
 

@@ -1,14 +1,18 @@
 import requests
+from fastapi import HTTPException
+from requests.exceptions import RequestException
 
 from parsing_service.parser.pdf_parser import PDFParser
 from parsing_service.parser.parser_utils import convert_json_to_document
 from parsing_service.models import Document
+import os
 
 
 class PdfactParser(PDFParser):
 
     def parse(self, filename: str, **kwargs) -> Document:
-        url = "http://127.0.0.1:4567/api/pdf/parse"
+        url = os.getenv('API_URL', 'http://default-api-url')
+        # "http://127.0.0.1:4567/api/pdf/parse"
         body = {"url": filename}
         unit = kwargs.get("unit", None)
         roles = kwargs.get("roles", None)
@@ -16,13 +20,17 @@ class PdfactParser(PDFParser):
             body["unit"] = unit
         if roles is not None:
             body["roles"] = roles
-        response = requests.post(url, json=body)
-        response.raise_for_status()
-        res = response.json()
-        if unit == 'paragraph' or unit is None:
-            res = pdfact_formatter(res)
-        document = convert_json_to_document(res)
-        return document
+        try:
+            response = requests.post(url, json=body)
+            response.raise_for_status()
+            res = response.json()
+            if unit == 'paragraph' or unit is None:
+                res = pdfact_formatter(res)
+            document = convert_json_to_document(res)
+            return document
+        except RequestException as e:
+            print(f"An error occurred while trying to reach the API: {e}")
+            raise HTTPException(status_code=503, detail="Error while trying to reach the API")
 
 
 def pdfact_formatter(json_file):

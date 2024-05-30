@@ -1,16 +1,23 @@
 version: '3'
 
 networks:
-  web:
+  internal:
     driver: bridge
 
 services:
   app:
-    image: "ghcr.io/data-house/pdf-text-extractor:main"
+    # image: "ghcr.io/data-house/pdf-text-extractor:main"
+    image: "pdf-text-extractor"
     environment:
-      GUNICORN_WORKERS: 2
-      GUNICORN_WORKERS_TIMEOUT: 600
+      #API_URL: "http://host.docker.internal:4567/api/pdf/parse"
+      API_URL: "http://pdfact:4567/api/pdf/parse"
     networks:
-      - web
+        - internal
     ports:
       - "5200:5000"
+
+  pdfact:
+    # image: "ghcr.io/data-house/pdf-text-extractor:main"
+    image: "pdfact"
+    networks:
+      - internal
