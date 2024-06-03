@@ -36,12 +36,12 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 COPY text_extractor_api/ text_extractor_api/
 COPY parsing_service/ parsing_service/
-COPY root.py gunicorn.sh ./
+COPY root.py uvicorn.sh ./
 
-RUN chmod +x ./gunicorn.sh
+RUN chmod +x ./uvicorn.sh
 
 EXPOSE 5000/tcp
 
 ENTRYPOINT ["tini", "--"]
 
-CMD ["/app/gunicorn.sh"]
+CMD ["/app/uvicorn.sh"]

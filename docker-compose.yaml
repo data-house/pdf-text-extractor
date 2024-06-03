@@ -6,18 +6,16 @@ networks:
 
 services:
   app:
-    # image: "ghcr.io/data-house/pdf-text-extractor:main"
-    image: "pdf-text-extractor"
-    environment:
-      #API_URL: "http://host.docker.internal:4567/api/pdf/parse"
-      API_URL: "http://pdfact:4567/api/pdf/parse"
+    build:
+      context: .
     networks:
         - internal
+    env_file:
+      - .env
     ports:
-      - "5200:5000"
+      - "5002:5000"
 
   pdfact:
-    # image: "ghcr.io/data-house/pdf-text-extractor:main"
-    image: "pdfact"
+    image: "ghcr.io/data-house/pdfact:main"
     networks:
       - internal
