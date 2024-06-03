@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 
 class ExtractTextRequest(BaseModel):
-    path: str
+    url: str
     mime_type: str
     driver: str
     unit: Optional[str] = None

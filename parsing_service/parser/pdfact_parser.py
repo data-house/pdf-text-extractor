@@ -3,8 +3,7 @@ from fastapi import HTTPException
 from requests.exceptions import RequestException
 
 from parsing_service.parser.pdf_parser import PDFParser
-from parsing_service.parser.parser_utils import convert_json_to_document
-from parsing_service.models import Document
+from parsing_service.models import Document, Metadata, Paragraph, Position, Color, Font
 import os
 import logging
 
@@ -12,10 +11,10 @@ logger = logging.getLogger(__name__)
 
 
 class PdfactParser(PDFParser):
+    def __init__(self, url: str) -> None:
+        self.url = url
 
     def parse(self, filename: str, **kwargs) -> Document:
-        url = os.getenv('API_URL', 'http://default-api-url')
-        # "http://127.0.0.1:4567/api/pdf/parse"
         body = {"url": filename}
         unit = kwargs.get("unit", None)
         roles = kwargs.get("roles", None)
@@ -24,16 +23,65 @@ class PdfactParser(PDFParser):
         if roles is not None:
             body["roles"] = roles
         try:
-            response = requests.post(url, json=body)
+            response = requests.post(self.url, json=body)
             response.raise_for_status()
             res = response.json()
             if unit == 'paragraph' or unit is None:
                 res = pdfact_formatter(res)
-            document = convert_json_to_document(res)
+            document = pdfact_to_document(res)
             return document
         except RequestException as e:
             logger.exception(f"An error occurred while trying to reach the API: {e}", exc_info=True)
             raise HTTPException(status_code=503, detail="Error while trying to reach the API")
+
+
+def pdfact_to_document(json_data: dict) -> Document:
+    colors = [Color(**color) for color in json_data.get('colors', [])]
+
+    fonts = [Font(**font) for font in json_data.get('fonts', [])]
+
+    paragraphs = []
+    for para in json_data.get('paragraphs', []):
+        paragraph_detail = para['paragraph']
+        color_id = paragraph_detail['color']['id']
+
+        color = next((c for c in colors if c.id == color_id), None)
+
+        font_id = paragraph_detail['font']['id']
+        font = next((f for f in fonts if f.id == font_id), None)
+
+        positions = [
+            Position(
+                minY=pos['minY'],
+                minX=pos['minX'],
+                maxY=pos['maxY'],
+                maxX=pos['maxX']
+            ) for pos in paragraph_detail.get('positions', [])
+        ]
+
+        page = paragraph_detail['positions'][0]['page'] if paragraph_detail.get('positions') else None
+
+        metadata = Metadata(
+            role=paragraph_detail['role'],
+            color=color,
+            positions=positions,
+            font=font,
+            page=page
+        )
+        paragraph = Paragraph(
+            text=paragraph_detail['text'],
+            metadata=metadata
+        )
+
+        paragraphs.append(paragraph)
+
+    document = Document(
+        fonts=fonts,
+        text=paragraphs,
+        colors=colors
+    )
+
+    return document
 
 
 def pdfact_formatter(json_file):

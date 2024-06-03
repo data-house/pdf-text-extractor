@@ -8,6 +8,7 @@ from requests.exceptions import HTTPError, Timeout
 
 from parsing_service.parser.pdfact_parser import PdfactParser
 from parsing_service.parser.pymupdf_parser import PymupdfParser
+from text_extractor_api.config import settings
 from text_extractor_api.models import ExtractTextRequest
 from parsing_service.models import Document
 
@@ -15,7 +16,7 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-@router.post("/extract-test", response_model=Document)
+@router.post("/extract-text", response_model=Document)
 async def parse_pdf(request: ExtractTextRequest) -> Document:
     logger.info("Received parse request.")
     resource_path: str = os.environ.get("RESOURCE_PATH", "/tmp")
@@ -31,7 +32,7 @@ async def parse_pdf(request: ExtractTextRequest) -> Document:
         raise HTTPException(status_code=422,
                             detail=f"Unsupported mime type. Expecting application/pdf received [{mime}].")
 
-    filename = hashlib.sha256(request.path.encode()).hexdigest()
+    filename = hashlib.sha256(request.url.encode()).hexdigest()
     extension = request.mime_type.split("/")[-1]
     filename = f"{filename}.{extension}"
     logger.info(f"Parsing {filename}")
@@ -39,7 +40,7 @@ async def parse_pdf(request: ExtractTextRequest) -> Document:
     file_path = os.path.join(resource_path, filename)
 
     try:
-        resp = requests.get(request.path, allow_redirects=True, timeout=120)
+        resp = requests.get(request.url, allow_redirects=True, timeout=120)
         resp.raise_for_status()
         with open(file_path, 'wb') as f:
             f.write(resp.content)
@@ -56,8 +57,8 @@ async def parse_pdf(request: ExtractTextRequest) -> Document:
     try:
         document = None
         if request.driver.lower() == "pdfact":
-            parser = PdfactParser()
-            document = parser.parse(filename=request.path, unit=request.unit, roles=request.roles)
+            parser = PdfactParser(settings.pdfact_url)
+            document = parser.parse(filename=request.url, unit=request.unit, roles=request.roles)
         elif request.driver.lower() == "pymupdf":
             parser = PymupdfParser()
             document = parser.parse(filename=file_path)
