@@ -21,9 +21,6 @@ async def parse_pdf(request: ExtractTextRequest) -> Document:
     logger.info("Received parse request.")
     resource_path: str = os.environ.get("RESOURCE_PATH", "/tmp")
 
-    if not request.path:
-        raise HTTPException(status_code=400, detail="The 'path' cannot be empty.")
-
     if request.mime_type != 'application/pdf':
         mime = request.mime_type
         raise HTTPException(status_code=422, detail=f"Unsupported mime type[{mime}]. Expecting application/pdf.")

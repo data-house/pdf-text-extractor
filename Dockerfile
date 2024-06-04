@@ -35,7 +35,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 
 COPY text_extractor_api/ text_extractor_api/
-COPY parsing_service/ parsing_service/
+COPY text_extractor/ text_extractor/
 COPY root.py uvicorn.sh ./
 
 RUN chmod +x ./uvicorn.sh
