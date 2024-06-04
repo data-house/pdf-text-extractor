@@ -33,13 +33,15 @@ WORKDIR /app
 COPY --from=build-image /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-COPY parsing_service/ parsing_service/
-COPY root.py gunicorn.sh ./
 
-RUN chmod +x ./gunicorn.sh
+COPY text_extractor_api/ text_extractor_api/
+COPY text_extractor/ text_extractor/
+COPY root.py uvicorn.sh ./
+
+RUN chmod +x ./uvicorn.sh
 
 EXPOSE 5000/tcp
 
 ENTRYPOINT ["tini", "--"]
 
-CMD ["/app/gunicorn.sh"]
+CMD ["/app/uvicorn.sh"]

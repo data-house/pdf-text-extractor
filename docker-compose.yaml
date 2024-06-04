@@ -1,16 +1,21 @@
 version: '3'
 
 networks:
-  web:
+  internal:
     driver: bridge
 
 services:
   app:
-    image: "ghcr.io/data-house/pdf-text-extractor:main"
-    environment:
-      GUNICORN_WORKERS: 2
-      GUNICORN_WORKERS_TIMEOUT: 600
+    build:
+      context: .
     networks:
-      - web
+        - internal
+    env_file:
+      - .env
     ports:
-      - "5200:5000"
+      - "5002:5000"
+
+  pdfact:
+    image: "ghcr.io/data-house/pdfact:main"
+    networks:
+      - internal
