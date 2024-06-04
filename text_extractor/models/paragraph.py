@@ -1,9 +1,10 @@
 from typing import List, Optional
+
 from pydantic import BaseModel
 
-from parsing_service.models import Position
-from parsing_service.models import Color
-from parsing_service.models import Font
+from text_extractor.models import Color
+from text_extractor.models import Font
+from text_extractor.models import Position
 
 
 class Metadata(BaseModel):

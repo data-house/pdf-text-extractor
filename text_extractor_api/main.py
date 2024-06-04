@@ -2,7 +2,7 @@ import logging
 
 from fastapi import FastAPI
 
-from parsing_service import init_logger
+from text_extractor import init_logger
 from text_extractor_api.routers import parser
 
 init_logger()

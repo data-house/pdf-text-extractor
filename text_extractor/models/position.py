@@ -1,4 +1,5 @@
 from typing import Optional
+
 from pydantic import BaseModel
 
 
@@ -7,4 +8,3 @@ class Position(BaseModel):
     minX: Optional[float] = None
     maxY: Optional[float] = None
     maxX: Optional[float] = None
-

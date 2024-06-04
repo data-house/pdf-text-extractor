@@ -1,12 +1,10 @@
-import os
 from typing import List
-
-from parsing_service.models.chunk import Chunk
 
 import fitz
 
-from parsing_service.parser.pdf_parser import PDFParser, clean_text
-from parsing_service.models import Document, Metadata, Paragraph
+from text_extractor.models import Document, Metadata, Paragraph
+from text_extractor.models.chunk import Chunk
+from text_extractor.parser.pdf_parser import PDFParser, clean_text
 
 
 class PymupdfParser(PDFParser):

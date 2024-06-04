@@ -6,11 +6,11 @@ import requests
 from fastapi import APIRouter, HTTPException
 from requests.exceptions import HTTPError, Timeout
 
-from parsing_service.parser.pdfact_parser import PdfactParser
-from parsing_service.parser.pymupdf_parser import PymupdfParser
+from text_extractor.models import Document
+from text_extractor.parser.pdfact_parser import PdfactParser
+from text_extractor.parser.pymupdf_parser import PymupdfParser
 from text_extractor_api.config import settings
 from text_extractor_api.models import ExtractTextRequest
-from parsing_service.models import Document
 
 router = APIRouter()
 logger = logging.getLogger(__name__)

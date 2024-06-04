@@ -1,11 +1,11 @@
+import logging
+
 import requests
 from fastapi import HTTPException
 from requests.exceptions import RequestException
 
-from parsing_service.parser.pdf_parser import PDFParser
-from parsing_service.models import Document, Metadata, Paragraph, Position, Color, Font
-import os
-import logging
+from text_extractor.models import Document, Metadata, Paragraph, Position, Color, Font
+from text_extractor.parser.pdf_parser import PDFParser
 
 logger = logging.getLogger(__name__)
 

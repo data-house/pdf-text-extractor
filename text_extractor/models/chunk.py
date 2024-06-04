@@ -5,6 +5,7 @@ class Chunk:
     """
     A chunk of text
     """
+
     def __init__(self, text: str, metadata: dict = None):
         """
         :param text: the text contained in the chunk.
