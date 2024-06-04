@@ -21,6 +21,17 @@ async def parse_pdf(request: ExtractTextRequest) -> Document:
     logger.info("Received parse request.")
     resource_path: str = os.environ.get("RESOURCE_PATH", "/tmp")
 
+    if not request.path:
+        raise HTTPException(status_code=400, detail="The 'path' cannot be empty.")
+
+    if request.mime_type != 'application/pdf':
+        mime = request.mime_type
+        raise HTTPException(status_code=422, detail=f"Unsupported mime type[{mime}]. Expecting application/pdf.")
+
+    if request.driver.lower() not in ["pdfact", "pymupdf"]:
+        raise HTTPException(status_code=400,
+                            detail=f"Unsupported driver. Expecting 'pdfact' or 'pymupdf', received [{request.driver}].")
+
     try:
         os.mkdir(resource_path)
     except FileExistsError:
@@ -49,10 +60,7 @@ async def parse_pdf(request: ExtractTextRequest) -> Document:
         raise HTTPException(status_code=500, detail=f"Error while downloading file [{http_err}]")
     except Timeout as http_timeout:
         logger.exception("Timeout while downloading file.", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"File download not completed [{http_timeout}]")
-    except Exception as requestError:
-        logger.exception(f"Error while downloading file. {str(requestError)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Error while saving file")
+        raise HTTPException(status_code=408, detail=f"File download not completed [{http_timeout}]")
 
     try:
         document = None
@@ -64,10 +72,8 @@ async def parse_pdf(request: ExtractTextRequest) -> Document:
             document = parser.parse(filename=file_path)
     except Exception as err:
         logger.exception(f"Error while parsing file. {str(err)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Error while parsing file")
+        raise HTTPException(status_code=502, detail="Error while parsing file")
     finally:
         if os.path.exists(file_path):
             os.remove(file_path)
-    if document is None:
-        raise HTTPException(status_code=422, detail="Error unsupported driver")
     return document
