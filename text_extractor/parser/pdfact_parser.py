@@ -79,10 +79,10 @@ def pdfact_to_document(json_data: dict) -> Document:
 
         boundingBoxs = [
             BoundingBox(
-                minY=pos['minY'],
-                minX=pos['minX'],
-                maxY=pos['maxY'],
-                maxX=pos['maxX'],
+                min_x=pos['minX'],
+                min_y=pos['minY'],
+                max_x=pos['maxX'],
+                max_y=pos['maxY'],
                 page=pos['page']
             ) for pos in paragraph_detail.get('positions', [])
         ]
