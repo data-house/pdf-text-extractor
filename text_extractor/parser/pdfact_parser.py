@@ -4,7 +4,13 @@ import requests
 from fastapi import HTTPException
 from requests.exceptions import RequestException
 
-from text_extractor.models import Document, Metadata, Paragraph, Position, Color, Font
+from text_extractor.models import Document, Color, Font
+from text_extractor.models.marks import Mark, TextStyleMark
+from text_extractor.models.content import Content
+from text_extractor.models.node import Node
+from text_extractor.models.node import Attributes as AttributesPage
+from typing import List, Dict
+from text_extractor.models.attributes import Attributes, BoundingBox
 from text_extractor.parser.pdf_parser import PDFParser
 
 logger = logging.getLogger(__name__)
@@ -37,51 +43,75 @@ class PdfactParser(PDFParser):
 
 def pdfact_to_document(json_data: dict) -> Document:
     colors = [Color(**color) for color in json_data.get('colors', [])]
-
     fonts = [Font(**font) for font in json_data.get('fonts', [])]
+    pages: Dict[int, List[Content]] = {}
 
-    paragraphs = []
     for para in json_data.get('paragraphs', []):
         paragraph_detail = para['paragraph']
+        page = paragraph_detail['positions'][0]['page'] if paragraph_detail.get('positions') else None
         color_id = paragraph_detail['color']['id']
-
         color = next((c for c in colors if c.id == color_id), None)
 
         font_id = paragraph_detail['font']['id']
+        font_size = paragraph_detail['font']['font-size']
         font = next((f for f in fonts if f.id == font_id), None)
+        if font_size and font:
+            font.size = font_size
+        font_info = next((font for font in json_data.get('fonts', []) if font.get('id') == font_id), None)
 
-        positions = [
-            Position(
+        is_bold = False
+        is_italic = False
+        if font_info:
+            is_bold = font_info.get('is-bold')
+            is_italic = font_info.get('is-italic')
+
+        # TODO implement logic for links
+        marks = []
+        if color or font:
+            mark = TextStyleMark(type='textStyle', color=color, font=font)
+            marks.append(mark)
+        if is_bold:
+            mark = Mark(type='bold')
+            marks.append(mark)
+        if is_italic:
+            mark = Mark(type='italic')
+            marks.append(mark)
+
+        boundingBoxs = [
+            BoundingBox(
                 minY=pos['minY'],
                 minX=pos['minX'],
                 maxY=pos['maxY'],
-                maxX=pos['maxX']
+                maxX=pos['maxX'],
+                page=pos['page']
             ) for pos in paragraph_detail.get('positions', [])
         ]
 
-        page = paragraph_detail['positions'][0]['page'] if paragraph_detail.get('positions') else None
+        attributes = Attributes(boundingBox=boundingBoxs)
 
-        metadata = Metadata(
-            role=paragraph_detail['role'],
-            color=color,
-            positions=positions,
-            font=font,
-            page=page
-        )
-        paragraph = Paragraph(
+        content = Content(
+            type=paragraph_detail['role'],
             text=paragraph_detail['text'],
-            metadata=metadata
+            marks=marks,
+            attributes=attributes
         )
 
-        paragraphs.append(paragraph)
+        if page not in pages:
+            pages[page] = []
+        pages[page].append(content)
 
-    document = Document(
-        fonts=fonts,
-        text=paragraphs,
-        colors=colors
+    nodes = [
+        Node(
+            attributes=AttributesPage(page_number=page, boundingBox=[]),
+            content=content_list
+        ) for page, content_list in pages.items()
+    ]
+
+    doc = Document(
+        content=nodes
     )
 
-    return document
+    return doc
 
 
 def pdfact_formatter(json_file):
@@ -133,6 +163,11 @@ def aggregate_paragraphs(json_file):
 def compare_paragraphs(p1, p2, tr=25):
     if p1["paragraph"]["role"] != p2["paragraph"]["role"]:
         return False
+    if p1["paragraph"]["color"] != p2["paragraph"]["color"]:
+        return False
+    if p1["paragraph"]["font"] != p2["paragraph"]["font"]:
+        return False
+
     positions1, positions2 = p1["paragraph"]["positions"], p2["paragraph"]["positions"]
 
     for pos1 in positions1:
@@ -173,3 +208,4 @@ def merge_pargraphs(p1, p2):
     }
 
     return paragraph
+

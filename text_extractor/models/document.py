@@ -1,13 +1,10 @@
 from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-from text_extractor.models.color import Color
-from text_extractor.models.font import Font
-from text_extractor.models.paragraph import Paragraph
+from text_extractor.models.node import Node
 
 
 class Document(BaseModel):
-    fonts: Optional[List[Font]] = None
-    text: List[Paragraph]
-    colors: Optional[List[Color]] = None
+    type: str = Field("doc")
+    content: List[Node]

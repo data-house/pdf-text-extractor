@@ -2,7 +2,10 @@ from typing import List
 
 import fitz
 
-from text_extractor.models import Document, Metadata, Paragraph
+from text_extractor.models import Document
+from text_extractor.models.content import Content
+from text_extractor.models.node import Node
+from text_extractor.models.node import Attributes
 from text_extractor.models.chunk import Chunk
 from text_extractor.parser.pdf_parser import PDFParser, clean_text
 
@@ -19,20 +22,20 @@ class PymupdfParser(PDFParser):
 
 
 def chunks_to_document(doc_parsed: List[Chunk]) -> Document:
-    paragraphs = []
+    nodes = []
     for page in doc_parsed:
         page_number = page.metadata['page_number']
+        attributes = Attributes(page_number=page_number)
+        content = [Content(text=page.text)]
 
-        metadata = Metadata(page=page_number)
-
-        paragraph = Paragraph(
-            text=page.text,
-            metadata=metadata
+        node = Node(
+            attributes=attributes,
+            content=content
         )
 
-        paragraphs.append(paragraph)
+        nodes.append(node)
 
     document = Document(
-        text=paragraphs,
+        content=nodes,
     )
     return document
