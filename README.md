@@ -118,11 +118,9 @@ Thank you for considering contributing to the PDF text extract service! The cont
 
 ## Supporters
 
-The project is supported by [OneOff-Tech (UG)](https://oneofftech.de) and [Oaks S.r.l](https://www.oaks.cloud/).
+The project is provided and supported by [OneOff-Tech (UG)](https://oneofftech.de).
 
 <p align="left"><a href="https://oneofftech.de" target="_blank"><img src="https://raw.githubusercontent.com/OneOffTech/.github/main/art/oneofftech-logo.svg" width="200"></a></p>
-
-<p align="left"><a href="https://www.oaks.cloud" target="_blank"><img src="https://raw.githubusercontent.com/data-house/pdf-text-extractor/main/.github/art/oaks-logo.svg" width="200"></a></p>
 
 
 ## Security Vulnerabilities
