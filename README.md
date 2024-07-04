@@ -35,26 +35,35 @@ with the following input as a `json` body:
 
 > **warning** The processing is performed synchronously
 
+The response is a JSON with the extracted text organized into typed nodes, making it easy to navigate and understand the different components of a document.
+In particular, the structure is as follows:
+- `type`: A string specifying the node type, which is `doc`
+- `content`: A list of `page` nodes representing the pages within the document.
 
-The response is a JSON with the extracted text splitted in chunks. In particular, the structure is as follows:
+Each page node contains the following information:
+- `type`: A string specifying the node type, which is `page`.
+- `attributes`: A list containing attributes of the page. Currently, it includes only `page_number`, the number of the page.
+- `content`: A list of chunk each representing a segment of text extracted from the page.
 
-- `text`: The list of chunks, each composed by:
-    - `text`: The text extracted from the chunk.
-    - `metadata`: A json with additional information regarding the chunk.
-- `fonts`: The list of fonts used in the document. 
-Each font is represented by `name`, `id`, `is-bold`, `is-type3` and `is-italic`. 
-Available only using `pdfact` driver.
-- `colors`: The list of colors used in the document.
-Each color is represented by `r`, `g`, `b` and `id`.
-Available only using `pdfact` driver.
+In particular, each `content` contains the following information:
+  - `type`: The role of the chunk in the document (e.g., _heading_, _body_, etc.)
+  - `text`: The text extracted from the chunk.
+  - `marks`: A list of marks that characterize the text extracted from the chunk.
+  - `attributes`: A list containing attributes of the chunk, currently including:
+    - A list of bounding boxs that contain the text. Each bounding box is identified by 4 coordinated:
+      - `min_x`: The minimum X coordinate.
+      - `min_y`: The minimum Y coordinate.
+      - `max_x`: The maximum X coordinate.
+      - `max_y`: The maximum Y coordinate. 
+      - `page`: The page number where the bounding box is located.
 
-The `metadata` of each chunk contains the following information:
-- `page`: The page number from which the chunk has been extracted.
-- `role`: The role of the chunk in the document (e.g., _heading_, _body_, etc.)
-- `positions`: A list of bounding box containing the text. 
-Each bounding box is identified by 4 coordinated: `minY`, `minX`, `maxY` and `maxX`.
-- `font`: The font of the chunk.
-- `color`: The color of the chunk.
+The `marks` of the chunks contains:
+- `type`: the type of the mark, which can be: `bold`, `italic`, `textStyle`, `link`
+If the mark type is textStyle, it includes additional attributes::
+- `font`: An object representing the font of the text chunk. 
+Each font is represented by `name`, `id`, and `size`. Available only using `pdfact` driver.
+- `color`: Which is the color of the text chunk. 
+Each color is represented by `r`, `g`, `b` and `id`. Available only using `pdfact` driver.
 
 ### Error handling
 
