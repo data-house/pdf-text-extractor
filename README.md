@@ -55,11 +55,14 @@ In particular, each `content` contains the following information:
 
 The `marks` of the chunks contains:
 - `type`: the type of the mark, which can be: `bold`, `italic`, `textStyle`, `link`
-If the mark type is textStyle, it includes additional attributes::
+
+If the mark type is `textStyle`, it includes additional attributes:
 - `font`: An object representing the font of the text chunk. 
 Each font is represented by `name`, `id`, and `size`. Available only using `pdfact` driver.
 - `color`: Which is the color of the text chunk. 
 Each color is represented by `r`, `g`, `b` and `id`. Available only using `pdfact` driver.
+
+if the mark type is `link`, it provides the `url` of the link.
 
 ### Error handling
 
