@@ -50,12 +50,8 @@ In particular, each `content` contains the following information:
   - `text`: The text extracted from the chunk.
   - `marks`: A list of marks that characterize the text extracted from the chunk.
   - `attributes`: A list containing attributes of the chunk, currently including:
-    - A list of bounding boxs that contain the text. Each bounding box is identified by 4 coordinated:
-      - `min_x`: The minimum X coordinate.
-      - `min_y`: The minimum Y coordinate.
-      - `max_x`: The maximum X coordinate.
-      - `max_y`: The maximum Y coordinate. 
-      - `page`: The page number where the bounding box is located.
+    - A list of bounding boxs that contain the text. Each bounding box is identified by 4 coordinated: 
+    `min_x`,`min_y`, `max_x`, `max_y` and `page`, which is the page number where the bounding box is located.
 
 The `marks` of the chunks contains:
 - `type`: the type of the mark, which can be: `bold`, `italic`, `textStyle`, `link`
