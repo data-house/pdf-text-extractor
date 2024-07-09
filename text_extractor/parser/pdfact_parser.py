@@ -50,9 +50,13 @@ def pdfact_to_document(json_data: dict) -> Document:
 
         font_id = paragraph_detail['font']['id']
         font_size = paragraph_detail['font']['font-size']
-        font = next((f for f in fonts if f.id == font_id), None)
-        if font_size and font:
-            font.size = font_size
+        original_font = next((f for f in fonts if f.id == font_id), None)
+
+        if original_font and font_size:
+            font = Font(name=original_font.name, id=original_font.id, size=font_size)
+        else:
+            font = original_font
+
         font_info = next((font for font in json_data.get('fonts', []) if font.get('id') == font_id), None)
 
         is_bold = False
@@ -204,4 +208,3 @@ def merge_pargraphs(p1, p2):
     }
 
     return paragraph
-
