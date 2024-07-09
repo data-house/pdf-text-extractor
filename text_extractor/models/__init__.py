@@ -1,4 +1,4 @@
 from .color import Color
-from .document import Document
+from .chunk import Chunk
+from .document import Document, Attributes, BoundingBox, Content, NodeAttributes, Node
 from .font import Font
-from .attributes import Attributes, BoundingBox

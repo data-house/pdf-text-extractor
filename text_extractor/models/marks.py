@@ -7,7 +7,7 @@ from text_extractor.models.font import Font
 
 
 class Mark(BaseModel):
-    type: Literal['bold', 'italic', 'textStyle', 'link']
+    category: Literal['bold', 'italic', 'textStyle', 'link']
 
     @model_validator(mode='before')
     @classmethod

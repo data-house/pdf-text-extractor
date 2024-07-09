@@ -2,11 +2,7 @@ from typing import List
 
 import fitz
 
-from text_extractor.models import Document
-from text_extractor.models.content import Content
-from text_extractor.models.node import Node
-from text_extractor.models.node import Attributes
-from text_extractor.models.chunk import Chunk
+from text_extractor.models import Document, Chunk, Content, NodeAttributes, Node
 from text_extractor.parser.pdf_parser import PDFParser, clean_text
 
 
@@ -25,7 +21,7 @@ def chunks_to_document(doc_parsed: List[Chunk]) -> Document:
     nodes = []
     for page in doc_parsed:
         page_number = page.metadata['page_number']
-        attributes = Attributes(page_number=page_number)
+        attributes = NodeAttributes(page=page_number)
         content = [Content(text=page.text)]
 
         node = Node(

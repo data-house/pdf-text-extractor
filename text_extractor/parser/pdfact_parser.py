@@ -1,16 +1,12 @@
 import logging
+from typing import List, Dict
 
 import requests
 from fastapi import HTTPException
 from requests.exceptions import RequestException
 
-from text_extractor.models import Document, Color, Font
+from text_extractor.models import Document, Color, Font, Attributes, BoundingBox, Content, NodeAttributes, Node
 from text_extractor.models.marks import Mark, TextStyleMark
-from text_extractor.models.content import Content
-from text_extractor.models.node import Node
-from text_extractor.models.node import Attributes as AttributesPage
-from typing import List, Dict
-from text_extractor.models.attributes import Attributes, BoundingBox
 from text_extractor.parser.pdf_parser import PDFParser
 
 logger = logging.getLogger(__name__)
@@ -68,16 +64,16 @@ def pdfact_to_document(json_data: dict) -> Document:
         # TODO implement logic for links
         marks = []
         if color or font:
-            mark = TextStyleMark(type='textStyle', color=color, font=font)
+            mark = TextStyleMark(category='textStyle', color=color, font=font)
             marks.append(mark)
         if is_bold:
-            mark = Mark(type='bold')
+            mark = Mark(category='bold')
             marks.append(mark)
         if is_italic:
-            mark = Mark(type='italic')
+            mark = Mark(category='italic')
             marks.append(mark)
 
-        boundingBoxs = [
+        bounding_boxs = [
             BoundingBox(
                 min_x=pos['minX'],
                 min_y=pos['minY'],
@@ -87,10 +83,10 @@ def pdfact_to_document(json_data: dict) -> Document:
             ) for pos in paragraph_detail.get('positions', [])
         ]
 
-        attributes = Attributes(boundingBox=boundingBoxs)
+        attributes = Attributes(bounding_box=bounding_boxs)
 
         content = Content(
-            type=paragraph_detail['role'],
+            role=paragraph_detail['role'],
             text=paragraph_detail['text'],
             marks=marks,
             attributes=attributes
@@ -102,7 +98,7 @@ def pdfact_to_document(json_data: dict) -> Document:
 
     nodes = [
         Node(
-            attributes=AttributesPage(page_number=page, boundingBox=[]),
+            attributes=NodeAttributes(page=page),
             content=content_list
         ) for page, content_list in pages.items()
     ]

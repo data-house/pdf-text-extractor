@@ -37,24 +37,24 @@ with the following input as a `json` body:
 
 The response is a JSON with the extracted text organized into typed nodes, making it easy to navigate and understand the different components of a document.
 In particular, the structure is as follows:
-- `type`: A string specifying the node type, which is `doc`
+- `category`: A string specifying the node category, which is `doc`
 - `content`: A list of `page` nodes representing the pages within the document.
 
 Each page node contains the following information:
-- `type`: A string specifying the node type, which is `page`.
-- `attributes`: A list containing attributes of the page. Currently, it includes only `page_number`, the number of the page.
+- `category`: A string specifying the node category, which is `page`.
+- `attributes`: A list containing attributes of the page. Currently, it includes only `page`, the number of the node page.
 - `content`: A list of chunk each representing a segment of text extracted from the page.
 
 In particular, each `content` contains the following information:
-  - `type`: The role of the chunk in the document (e.g., _heading_, _body_, etc.)
+  - `role`: The role of the chunk in the document (e.g., _heading_, _body_, etc.)
   - `text`: The text extracted from the chunk.
   - `marks`: A list of marks that characterize the text extracted from the chunk.
   - `attributes`: A list containing attributes of the chunk, currently including:
-    - A list of bounding boxs that contain the text. Each bounding box is identified by 4 coordinated: 
+    - A list of `bounding_box` attributes that contain the text. Each bounding box is identified by 4 coordinated: 
     `min_x`,`min_y`, `max_x`, `max_y` and `page`, which is the page number where the bounding box is located.
 
 The `marks` of the chunks contains:
-- `type`: the type of the mark, which can be: `bold`, `italic`, `textStyle`, `link`
+- `category`: the type of the mark, which can be: `bold`, `italic`, `textStyle`, `link`
 
 If the mark type is `textStyle`, it includes additional attributes:
 - `font`: An object representing the font of the text chunk. 
@@ -62,7 +62,7 @@ Each font is represented by `name`, `id`, and `size`. Available only using `pdfa
 - `color`: Which is the color of the text chunk. 
 Each color is represented by `r`, `g`, `b` and `id`. Available only using `pdfact` driver.
 
-if the mark type is `link`, it provides the `url` of the link.
+if the mark category is `link`, it provides the `url` of the link.
 
 ### Error handling
 
