@@ -53,7 +53,7 @@ def pdfact_to_document(json_data: dict) -> Document:
         original_font = next((f for f in fonts if f.id == font_id), None)
 
         if original_font and font_size:
-            font = Font(name=original_font.name, id=original_font.id, size=font_size)
+            font = Font(name=original_font.name, id=original_font.id, size=round(font_size))
         else:
             font = original_font
 
