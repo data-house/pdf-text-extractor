@@ -1,5 +1,6 @@
 import logging
 from typing import List, Dict
+import json
 
 import requests
 from fastapi import HTTPException
@@ -8,6 +9,7 @@ from requests.exceptions import RequestException
 from text_extractor.models import Document, Color, Font, Attributes, BoundingBox, Content, NodeAttributes, Node
 from text_extractor.models.marks import Mark, TextStyleMark
 from text_extractor.parser.pdf_parser import PDFParser
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +32,7 @@ class PdfactParser(PDFParser):
             res = response.json()
             if unit == 'paragraph' or unit is None:
                 res = pdfact_formatter(res)
+                res = heading_filter(res)
             document = pdfact_to_document(res)
             return document
         except RequestException as e:
@@ -208,3 +211,15 @@ def merge_pargraphs(p1, p2):
     }
 
     return paragraph
+
+
+def heading_filter(json_file):
+    min_font_size_body = min(paragraph["paragraph"]["font"]["font-size"] for paragraph in json_file["paragraphs"] if
+                             paragraph["paragraph"]["role"] == "body")
+    for i in range(len(json_file["paragraphs"])):
+        paragraph = json_file["paragraphs"][i]
+        if paragraph["paragraph"]["role"] == "heading":
+            font_size = paragraph["paragraph"]["font"]["font-size"]
+            if font_size == min_font_size_body:
+                paragraph["paragraph"]["role"] = "body"
+    return json_file
