@@ -11,7 +11,6 @@ app = FastAPI()
 app.include_router(parser.router)
 
 
-@app.get("/")
 async def root():
     logger.info("Welcome to text extractor!")
     return {"message": "Welcome to text extractor!"}

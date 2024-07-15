@@ -1,6 +1,7 @@
-from pydantic import BaseModel, model_validator
-from typing import Literal, Optional
 from typing import Any
+from typing import Literal, Optional
+
+from pydantic import BaseModel, model_validator
 
 from text_extractor.models.color import Color
 from text_extractor.models.font import Font

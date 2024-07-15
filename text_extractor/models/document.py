@@ -1,7 +1,8 @@
-from typing import List, Optional, Union
+from typing import List, Union
 
 from pydantic import BaseModel, Field
 from typing_extensions import TypedDict
+
 from text_extractor.models.marks import Mark, TextStyleMark
 
 

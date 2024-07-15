@@ -1,6 +1,5 @@
 import logging
 from typing import List, Dict
-import json
 
 import requests
 from fastapi import HTTPException
@@ -9,7 +8,6 @@ from requests.exceptions import RequestException
 from text_extractor.models import Document, Color, Font, Attributes, BoundingBox, Content, NodeAttributes, Node
 from text_extractor.models.marks import Mark, TextStyleMark
 from text_extractor.parser.pdf_parser import PDFParser
-import numpy as np
 
 logger = logging.getLogger(__name__)
 
