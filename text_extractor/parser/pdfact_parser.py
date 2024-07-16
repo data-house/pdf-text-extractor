@@ -1,10 +1,12 @@
 import logging
+from typing import List, Dict
 
 import requests
 from fastapi import HTTPException
 from requests.exceptions import RequestException
 
-from text_extractor.models import Document, Metadata, Paragraph, Position, Color, Font
+from text_extractor.models import Document, Color, Font, Attributes, BoundingBox, Content, NodeAttributes, Node
+from text_extractor.models.marks import Mark, TextStyleMark
 from text_extractor.parser.pdf_parser import PDFParser
 
 logger = logging.getLogger(__name__)
@@ -28,6 +30,7 @@ class PdfactParser(PDFParser):
             res = response.json()
             if unit == 'paragraph' or unit is None:
                 res = pdfact_formatter(res)
+                res = heading_filter(res)
             document = pdfact_to_document(res)
             return document
         except RequestException as e:
@@ -37,51 +40,79 @@ class PdfactParser(PDFParser):
 
 def pdfact_to_document(json_data: dict) -> Document:
     colors = [Color(**color) for color in json_data.get('colors', [])]
-
     fonts = [Font(**font) for font in json_data.get('fonts', [])]
+    pages: Dict[int, List[Content]] = {}
 
-    paragraphs = []
     for para in json_data.get('paragraphs', []):
         paragraph_detail = para['paragraph']
+        page = paragraph_detail['positions'][0]['page'] if paragraph_detail.get('positions') else None
         color_id = paragraph_detail['color']['id']
-
         color = next((c for c in colors if c.id == color_id), None)
 
         font_id = paragraph_detail['font']['id']
-        font = next((f for f in fonts if f.id == font_id), None)
+        font_size = paragraph_detail['font']['font-size']
+        original_font = next((f for f in fonts if f.id == font_id), None)
 
-        positions = [
-            Position(
-                minY=pos['minY'],
-                minX=pos['minX'],
-                maxY=pos['maxY'],
-                maxX=pos['maxX']
+        if original_font and font_size:
+            font = Font(name=original_font.name, id=original_font.id, size=round(font_size))
+        else:
+            font = original_font
+
+        font_info = next((font for font in json_data.get('fonts', []) if font.get('id') == font_id), None)
+
+        is_bold = False
+        is_italic = False
+        if font_info:
+            is_bold = font_info.get('is-bold')
+            is_italic = font_info.get('is-italic')
+
+        # TODO implement logic for links
+        marks = []
+        if color or font:
+            mark = TextStyleMark(category='textStyle', color=color, font=font)
+            marks.append(mark)
+        if is_bold:
+            mark = Mark(category='bold')
+            marks.append(mark)
+        if is_italic:
+            mark = Mark(category='italic')
+            marks.append(mark)
+
+        bounding_boxs = [
+            BoundingBox(
+                min_x=pos['minX'],
+                min_y=pos['minY'],
+                max_x=pos['maxX'],
+                max_y=pos['maxY'],
+                page=pos['page']
             ) for pos in paragraph_detail.get('positions', [])
         ]
 
-        page = paragraph_detail['positions'][0]['page'] if paragraph_detail.get('positions') else None
+        attributes = Attributes(bounding_box=bounding_boxs)
 
-        metadata = Metadata(
+        content = Content(
             role=paragraph_detail['role'],
-            color=color,
-            positions=positions,
-            font=font,
-            page=page
-        )
-        paragraph = Paragraph(
             text=paragraph_detail['text'],
-            metadata=metadata
+            marks=marks,
+            attributes=attributes
         )
 
-        paragraphs.append(paragraph)
+        if page not in pages:
+            pages[page] = []
+        pages[page].append(content)
 
-    document = Document(
-        fonts=fonts,
-        text=paragraphs,
-        colors=colors
+    nodes = [
+        Node(
+            attributes=NodeAttributes(page=page),
+            content=content_list
+        ) for page, content_list in pages.items()
+    ]
+
+    doc = Document(
+        content=nodes
     )
 
-    return document
+    return doc
 
 
 def pdfact_formatter(json_file):
@@ -133,6 +164,11 @@ def aggregate_paragraphs(json_file):
 def compare_paragraphs(p1, p2, tr=25):
     if p1["paragraph"]["role"] != p2["paragraph"]["role"]:
         return False
+    if p1["paragraph"]["color"] != p2["paragraph"]["color"]:
+        return False
+    if p1["paragraph"]["font"] != p2["paragraph"]["font"]:
+        return False
+
     positions1, positions2 = p1["paragraph"]["positions"], p2["paragraph"]["positions"]
 
     for pos1 in positions1:
@@ -173,3 +209,15 @@ def merge_pargraphs(p1, p2):
     }
 
     return paragraph
+
+
+def heading_filter(json_file):
+    min_font_size_body = min(paragraph["paragraph"]["font"]["font-size"] for paragraph in json_file["paragraphs"] if
+                             paragraph["paragraph"]["role"] == "body")
+    for i in range(len(json_file["paragraphs"])):
+        paragraph = json_file["paragraphs"][i]
+        if paragraph["paragraph"]["role"] == "heading":
+            font_size = paragraph["paragraph"]["font"]["font-size"]
+            if font_size == min_font_size_body:
+                paragraph["paragraph"]["role"] = "body"
+    return json_file

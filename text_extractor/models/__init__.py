@@ -1,5 +1,4 @@
+from .chunk import Chunk
 from .color import Color
-from .document import Document
+from .document import Document, Attributes, BoundingBox, Content, NodeAttributes, Node
 from .font import Font
-from .paragraph import Paragraph, Metadata
-from .position import Position
