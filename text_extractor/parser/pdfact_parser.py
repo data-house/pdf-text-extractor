@@ -2,7 +2,6 @@ import logging
 from typing import List, Dict
 
 import requests
-from fastapi import HTTPException
 from requests.exceptions import RequestException
 
 from text_extractor.models import Document, Color, Font, Attributes, BoundingBox, Content, NodeAttributes, Node
@@ -35,7 +34,7 @@ class PdfactParser(PDFParser):
             return document
         except RequestException as e:
             logger.exception(f"An error occurred while trying to reach the API: {e}", exc_info=True)
-            raise HTTPException(status_code=503, detail="Error while trying to reach the API")
+            raise e
 
 
 def pdfact_to_document(json_data: dict) -> Document:

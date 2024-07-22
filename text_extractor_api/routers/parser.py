@@ -4,7 +4,7 @@ import os
 
 import requests
 from fastapi import APIRouter, HTTPException
-from requests.exceptions import HTTPError, Timeout
+from requests.exceptions import HTTPError, Timeout, RequestException
 
 from text_extractor.models import Document
 from text_extractor.parser.pdfact_parser import PdfactParser
@@ -67,6 +67,9 @@ async def parse_pdf(request: ExtractTextRequest) -> Document:
         elif request.driver.lower() == "pymupdf":
             parser = PymupdfParser()
             document = parser.parse(filename=file_path)
+    except RequestException as e:
+        logger.exception(f"Error while connecting to pdfact. {str(e)}", exc_info=True)
+        raise HTTPException(status_code=503, detail="The pdfact service is not reachable")
     except Exception as err:
         logger.exception(f"Error while parsing file. {str(err)}", exc_info=True)
         raise HTTPException(status_code=502, detail="Error while parsing file")
