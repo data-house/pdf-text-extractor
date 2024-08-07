@@ -211,8 +211,11 @@ def merge_pargraphs(p1, p2):
 
 
 def heading_filter(json_file):
-    min_font_size_body = min(paragraph["paragraph"]["font"]["font-size"] for paragraph in json_file["paragraphs"] if
-                             paragraph["paragraph"]["role"] == "body")
+    font_size_body = [paragraph["paragraph"]["font"]["font-size"] for paragraph in json_file["paragraphs"] if
+                      paragraph["paragraph"]["role"] == "body"]
+    if len(font_size_body) == 0:
+        return json_file
+    min_font_size_body = min(font_size_body)
     for i in range(len(json_file["paragraphs"])):
         paragraph = json_file["paragraphs"][i]
         if paragraph["paragraph"]["role"] == "heading":
