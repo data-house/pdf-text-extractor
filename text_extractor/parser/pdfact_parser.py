@@ -132,6 +132,11 @@ def aggregate_paragraphs(json_file):
     fonts = json_file["fonts"]
     colors = json_file["colors"]
     i = 0
+
+    # Base case: if the document consists of only one paragraph, the method terminates and returns the unmodified JSON
+    if len(json_file["paragraphs"]) == 1:
+        return json_file
+
     while i < len(json_file["paragraphs"][:-1]):
         paragraph1 = json_file["paragraphs"][i]
         paragraph2 = json_file["paragraphs"][i + 1]
@@ -147,6 +152,9 @@ def aggregate_paragraphs(json_file):
             # if the paragraph following the (i+1)-th one is the last one, then concatenate it
             elif i + 2 == len(json_file["paragraphs"][:-1]):
                 output.append(json_file["paragraphs"][i + 2])
+                break
+            # If there is no paragraph following the (i+1)-th one, terminate
+            elif i + 2 > len(json_file["paragraphs"][:-1]):
                 break
         else:
             output.append(json_file["paragraphs"][i])
