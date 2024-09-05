@@ -36,5 +36,5 @@ class Node(BaseModel):
 
 
 class Document(BaseModel):
-    type: str = Field("doc")
+    category: str = Field("doc")
     content: List[Node]
