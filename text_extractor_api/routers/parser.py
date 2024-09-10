@@ -54,7 +54,7 @@ async def parse_pdf(request: ExtractTextRequest) -> Document:
             f.write(resp.content)
     except HTTPError as http_err:
         logger.exception("Error while downloading file.", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Error while downloading file [{http_err}]")
+        raise HTTPException(status_code=400, detail=f"Error while downloading file [{http_err}]")
     except Timeout as http_timeout:
         logger.exception("Timeout while downloading file.", exc_info=True)
         raise HTTPException(status_code=408, detail=f"File download not completed [{http_timeout}]")
@@ -72,7 +72,7 @@ async def parse_pdf(request: ExtractTextRequest) -> Document:
         raise HTTPException(status_code=503, detail="The pdfact service is not reachable")
     except Exception as err:
         logger.exception(f"Error while parsing file. {str(err)}", exc_info=True)
-        raise HTTPException(status_code=502, detail="Error while parsing file")
+        raise HTTPException(status_code=400, detail="Error while parsing file")
     finally:
         if os.path.exists(file_path):
             os.remove(file_path)
