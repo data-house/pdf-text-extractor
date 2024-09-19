@@ -269,10 +269,17 @@ def determine_heading_level(document: Document) -> Document:
                     if not existing_style:
                         heading_styles.append({
                             'font_name': font_name,
-                            'font_size': font_size
+                            'font_size': font_size,
+                            'occurrences': 1
                         })
+                    else:
+                        existing_style['occurrences'] += 1
     # Sort the styles by font size in descending order
     heading_styles = sorted(heading_styles, key=lambda x: x['font_size'], reverse=True)
+
+    largest_font_style = heading_styles[0] if heading_styles else None
+    if largest_font_style and largest_font_style['occurrences'] == 1:
+        heading_styles = heading_styles[1:]
     # Assign levels to the sorted heading styles
     assigned_levels = assign_heading_levels(heading_styles)
 
@@ -289,13 +296,17 @@ def determine_heading_level(document: Document) -> Document:
                         font_size = mark.font.size
 
                 if font_name and font_size:
-                    level = 4
-                    for style in assigned_levels:
-                        if style['font_name'] == font_name and style['font_size'] == font_size:
-                            level = style['level']
-                            break
-
-                    node.role = f"{node.role} {level}"
+                    if (largest_font_style and
+                            largest_font_style['font_name'] == font_name and
+                            largest_font_style['font_size'] == font_size):
+                        node.role = "title"
+                    else:
+                        level = 4
+                        for style in assigned_levels:
+                            if style['font_name'] == font_name and style['font_size'] == font_size:
+                                level = style['level']
+                                break
+                        node.role = f"{node.role} {level}"
 
     return document
 
