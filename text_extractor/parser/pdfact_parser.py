@@ -310,14 +310,7 @@ def assign_heading_levels(heading_styles):
     other_fonts = [f for f in heading_styles if f['font_name'] != main_font]
     levels_assigned = {}
     for i, font in enumerate(main_fonts):
-        if i == 0:
-            level = 1
-        elif i == 1:
-            level = 2
-        elif i == 2:
-            level = 3
-        else:
-            level = 4
+        level = min(i + 1, 4)
         levels_assigned[(font['font_name'], font['font_size'])] = level
 
     for font in other_fonts:
@@ -329,23 +322,22 @@ def assign_heading_levels(heading_styles):
         else:
             existing_sizes = sorted([f[1] for f in levels_assigned])
 
-            if size > existing_sizes[0]:
+            if size > existing_sizes[-1]:
                 level = 1
-            elif size < existing_sizes[-1]:
+            elif size < existing_sizes[0]:
                 level = 4
             else:
                 for i in range(len(existing_sizes) - 1):
-                    if existing_sizes[i] > size:
+                    if existing_sizes[i + 1] > size > existing_sizes[i]:
                         mid_point = (existing_sizes[i] + existing_sizes[i + 1]) / 2
-                        if size > mid_point:
-                            level = levels_assigned[(main_font, existing_sizes[i])]
-                        else:
+                        if size >= mid_point:
                             level = levels_assigned[(main_font, existing_sizes[i + 1])]
+                        else:
+                            level = levels_assigned[(main_font, existing_sizes[i])]
                         break
 
         levels_assigned[(font['font_name'], font['font_size'])] = level
 
-        # Ricostruisci l'output finale con i livelli
     result = []
     for font in heading_styles:
         font_info = {
