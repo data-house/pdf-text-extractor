@@ -1,7 +1,7 @@
 import re
 from abc import ABC, abstractmethod
 
-from text_extractor.models import Document
+from parse_document_model import Document
 
 
 class PDFParser(ABC):

@@ -5,8 +5,10 @@ from collections import Counter
 import requests
 from requests.exceptions import RequestException
 
-from text_extractor.models import Document, Color, Font, Attributes, BoundingBox, Content, NodeAttributes, Node
-from text_extractor.models.marks import Mark, TextStyleMark
+from parse_document_model import Document, Page
+from parse_document_model.document import Text
+from parse_document_model.attributes import TextAttributes, PageAttributes, BoundingBox
+from parse_document_model.marks import Mark, TextStyleMark, Color, Font
 from text_extractor.parser.pdf_parser import PDFParser
 
 logger = logging.getLogger(__name__)
@@ -41,8 +43,8 @@ class PdfactParser(PDFParser):
 
 def pdfact_to_document(json_data: dict) -> Document:
     colors = [Color(**color) for color in json_data.get('colors', [])]
-    fonts = [Font(**font) for font in json_data.get('fonts', [])]
-    pages: Dict[int, List[Content]] = {}
+    fonts = [Font(id=font['id'], name=font['name'], size=-1) for font in json_data.get('fonts', [])]
+    pages: Dict[int, List[Text]] = {}
 
     for para in json_data.get('paragraphs', []):
         paragraph_detail = para['paragraph']
@@ -89,10 +91,10 @@ def pdfact_to_document(json_data: dict) -> Document:
             ) for pos in paragraph_detail.get('positions', [])
         ]
 
-        attributes = Attributes(bounding_box=bounding_boxs)
+        attributes = TextAttributes(bounding_box=bounding_boxs)
 
-        content = Content(
-            role=paragraph_detail['role'],
+        content = Text(
+            category=paragraph_detail['role'],
             text=paragraph_detail['text'],
             marks=marks,
             attributes=attributes
@@ -102,15 +104,15 @@ def pdfact_to_document(json_data: dict) -> Document:
             pages[page] = []
         pages[page].append(content)
 
-    nodes = [
-        Node(
-            attributes=NodeAttributes(page=page),
+    nodes_page = [
+        Page(
+            attributes=PageAttributes(page=page),
             content=content_list
         ) for page, content_list in pages.items()
     ]
 
     doc = Document(
-        content=nodes
+        content=nodes_page
     )
 
     return doc
@@ -252,7 +254,7 @@ def determine_heading_level(document: Document) -> Document:
 
     for page in document.content:
         for node in page.content:
-            if node.role == "heading" and node.marks:
+            if node.category == "heading" and node.marks:
                 marks = node.marks
                 font_name = None
                 font_size = None
@@ -285,7 +287,7 @@ def determine_heading_level(document: Document) -> Document:
 
     for page in document.content:
         for node in page.content:
-            if node.role == "heading" and node.marks:
+            if node.category == "heading" and node.marks:
                 marks = node.marks
                 font_name = None
                 font_size = None
@@ -299,14 +301,14 @@ def determine_heading_level(document: Document) -> Document:
                     if (largest_font_style and
                             largest_font_style['font_name'] == font_name and
                             largest_font_style['font_size'] == font_size):
-                        node.role = "title"
+                        node.category = "title"
                     else:
                         level = 4
                         for style in assigned_levels:
                             if style['font_name'] == font_name and style['font_size'] == font_size:
                                 level = style['level']
                                 break
-                        node.role = f"{node.role} {level}"
+                        node.category = f"{node.category} {level}"
 
     return document
 
