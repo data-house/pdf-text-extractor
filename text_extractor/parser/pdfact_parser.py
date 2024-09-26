@@ -245,8 +245,8 @@ def determine_heading_level(document: Document) -> Document:
     styles. These styles are then sorted by font size in descending order, assuming that larger font sizes correspond
     to higher-level headings. Finally, the headings are assigned levels based on their font styles.
 
-    :param document: The input document object, which contains content in the form of pages and nodes. Each node
-                            represents an element in the document.
+    :param document: The input document object, containing content structured into pages. Each page consists
+    of nodes representing portions of text.
 
     :return: The document with updated heading levels assigned to each heading node.
     """
@@ -308,7 +308,7 @@ def determine_heading_level(document: Document) -> Document:
                             if style['font_name'] == font_name and style['font_size'] == font_size:
                                 level = style['level']
                                 break
-                        node.category = f"{node.category} {level}"
+                        node.attributes.level = level
 
     return document
 

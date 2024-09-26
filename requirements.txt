@@ -6,3 +6,4 @@ fastapi~=0.111.0
 pydantic~=2.7.1
 pydantic_settings~=2.2.1
 uvicorn==0.22.0
+parse-document-model==0.2.0
