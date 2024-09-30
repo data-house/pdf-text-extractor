@@ -1,14 +1,14 @@
 import logging
-from typing import List, Dict
 from collections import Counter
+from typing import List, Dict
 
 import requests
+from parse_document_model import Document, Page
+from parse_document_model.attributes import TextAttributes, PageAttributes, BoundingBox
+from parse_document_model.document import Text
+from parse_document_model.marks import Mark, TextStyleMark, Color, Font
 from requests.exceptions import RequestException
 
-from parse_document_model import Document, Page
-from parse_document_model.document import Text
-from parse_document_model.attributes import TextAttributes, PageAttributes, BoundingBox
-from parse_document_model.marks import Mark, TextStyleMark, Color, Font
 from text_extractor.parser.pdf_parser import PDFParser
 
 logger = logging.getLogger(__name__)
@@ -246,7 +246,7 @@ def determine_heading_level(document: Document) -> Document:
     to higher-level headings. Finally, the headings are assigned levels based on their font styles.
 
     :param document: The input document object, containing content structured into pages. Each page consists
-    of nodes representing portions of text.
+        of nodes representing portions of text.
 
     :return: The document with updated heading levels assigned to each heading node.
     """

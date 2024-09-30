@@ -1,11 +1,11 @@
 from typing import List
 
 import fitz
+from parse_document_model import Document, Page
+from parse_document_model.attributes import PageAttributes
+from parse_document_model.document import Text
 
 from text_extractor.models import Chunk
-from parse_document_model.attributes import PageAttributes
-from parse_document_model import Document, Page
-from parse_document_model.document import Text
 from text_extractor.parser.pdf_parser import PDFParser, clean_text
 
 
