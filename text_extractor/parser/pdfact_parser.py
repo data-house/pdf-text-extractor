@@ -276,6 +276,10 @@ def determine_heading_level(document: Document) -> Document:
                         })
                     else:
                         existing_style['occurrences'] += 1
+
+    if not heading_styles:
+        return document
+
     # Sort the styles by font size in descending order
     heading_styles = sorted(heading_styles, key=lambda x: x['font_size'], reverse=True)
 
