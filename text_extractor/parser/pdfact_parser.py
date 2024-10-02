@@ -1,6 +1,6 @@
 import logging
 from collections import Counter
-from typing import List, Dict
+from typing import List, Dict, Any
 
 import requests
 from parse_document_model import Document, Page
@@ -95,7 +95,7 @@ def pdfact_to_document(json_data: dict) -> Document:
 
         content = Text(
             category=paragraph_detail['role'],
-            text=paragraph_detail['text'],
+            content=paragraph_detail['text'],
             marks=marks,
             attributes=attributes
         )
@@ -313,26 +313,44 @@ def determine_heading_level(document: Document) -> Document:
     return document
 
 
-def assign_heading_levels(heading_styles):
+def assign_heading_levels(heading_styles: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Assigns heading levels to a list of heading styles based on font size and frequency.
+
+    :param heading_styles: A list of dictionaries where each dictionary contains
+                            information about a heading's font name ('font_name')
+                            and its font size ('font_size').
+
+    :return: A list of dictionaries, where each dictionary includes 'font_name',
+            'font_size', and the assigned 'level' (from 1 to 4).
+            Level 1 is for the largest and level 4 is for the smallest.
+    """
     # Count the number of occurrences for each font
     font_count = Counter([font['font_name'] for font in heading_styles])
 
+    # Identify the most common font (likely the main heading font)
     main_font = font_count.most_common(1)[0][0]
+    # Sort the main font headings by decreasing font size
     main_fonts = sorted([f for f in heading_styles if f['font_name'] == main_font],
                         key=lambda x: -x['font_size'])
+    # Collect other fonts that are not the main font
     other_fonts = [f for f in heading_styles if f['font_name'] != main_font]
     levels_assigned = {}
+    # Assign levels (1-4) to the main font headings based on font size
     for i, font in enumerate(main_fonts):
         level = min(i + 1, 4)
         levels_assigned[(font['font_name'], font['font_size'])] = level
 
+    # For other fonts, assign levels based on font size comparisons
     for font in other_fonts:
         size = font['font_size']
         same_size_fonts = [f for f in levels_assigned if f[1] == size]
 
+        # If the same size exists, assign its level
         if same_size_fonts:
             level = levels_assigned[same_size_fonts[0]]
         else:
+            # Otherwise, assign level based on size relative to existing main fonts
             existing_sizes = sorted([f[1] for f in levels_assigned])
 
             if size > existing_sizes[-1]:

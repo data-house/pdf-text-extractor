@@ -19,5 +19,3 @@ services:
     image: "ghcr.io/data-house/pdfact:main"
     networks:
       - internal
-    ports:
-      - "4567:4567"
