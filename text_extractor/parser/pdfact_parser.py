@@ -361,10 +361,13 @@ def assign_heading_levels(heading_styles: List[Dict[str, Any]]) -> List[Dict[str
                 for i in range(len(existing_sizes) - 1):
                     if existing_sizes[i + 1] > size > existing_sizes[i]:
                         mid_point = (existing_sizes[i] + existing_sizes[i + 1]) / 2
+                        # Ensure we select a font size for which a level is already assigned
+                        larger_font = next(f for f in levels_assigned if f[1] == existing_sizes[i + 1])
+                        smaller_font = next(f for f in levels_assigned if f[1] == existing_sizes[i])
                         if size >= mid_point:
-                            level = levels_assigned[(main_font, existing_sizes[i + 1])]
+                            level = levels_assigned[larger_font]
                         else:
-                            level = levels_assigned[(main_font, existing_sizes[i])]
+                            level = levels_assigned[smaller_font]
                         break
 
         levels_assigned[(font['font_name'], font['font_size'])] = level
