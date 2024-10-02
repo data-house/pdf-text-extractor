@@ -1,11 +1,14 @@
 import logging
-from typing import List, Dict
+from collections import Counter
+from typing import List, Dict, Any
 
 import requests
+from parse_document_model import Document, Page
+from parse_document_model.attributes import TextAttributes, PageAttributes, BoundingBox
+from parse_document_model.document import Text
+from parse_document_model.marks import Mark, TextStyleMark, Color, Font
 from requests.exceptions import RequestException
 
-from text_extractor.models import Document, Color, Font, Attributes, BoundingBox, Content, NodeAttributes, Node
-from text_extractor.models.marks import Mark, TextStyleMark
 from text_extractor.parser.pdf_parser import PDFParser
 
 logger = logging.getLogger(__name__)
@@ -31,6 +34,7 @@ class PdfactParser(PDFParser):
                 res = pdfact_formatter(res)
                 res = heading_filter(res)
             document = pdfact_to_document(res)
+            document = determine_heading_level(document)
             return document
         except RequestException as e:
             logger.exception(f"An error occurred while trying to reach the API: {e}", exc_info=True)
@@ -39,8 +43,8 @@ class PdfactParser(PDFParser):
 
 def pdfact_to_document(json_data: dict) -> Document:
     colors = [Color(**color) for color in json_data.get('colors', [])]
-    fonts = [Font(**font) for font in json_data.get('fonts', [])]
-    pages: Dict[int, List[Content]] = {}
+    fonts = [Font(id=font['id'], name=font['name'], size=-1) for font in json_data.get('fonts', [])]
+    pages: Dict[int, List[Text]] = {}
 
     for para in json_data.get('paragraphs', []):
         paragraph_detail = para['paragraph']
@@ -87,11 +91,11 @@ def pdfact_to_document(json_data: dict) -> Document:
             ) for pos in paragraph_detail.get('positions', [])
         ]
 
-        attributes = Attributes(bounding_box=bounding_boxs)
+        attributes = TextAttributes(bounding_box=bounding_boxs)
 
-        content = Content(
-            role=paragraph_detail['role'],
-            text=paragraph_detail['text'],
+        content = Text(
+            category=paragraph_detail['role'],
+            content=paragraph_detail['text'],
             marks=marks,
             attributes=attributes
         )
@@ -100,15 +104,15 @@ def pdfact_to_document(json_data: dict) -> Document:
             pages[page] = []
         pages[page].append(content)
 
-    nodes = [
-        Node(
-            attributes=NodeAttributes(page=page),
+    nodes_page = [
+        Page(
+            attributes=PageAttributes(page=page),
             content=content_list
         ) for page, content_list in pages.items()
     ]
 
     doc = Document(
-        content=nodes
+        content=nodes_page
     )
 
     return doc
@@ -231,3 +235,154 @@ def heading_filter(json_file):
             if font_size == min_font_size_body:
                 paragraph["paragraph"]["role"] = "body"
     return json_file
+
+
+def determine_heading_level(document: Document) -> Document:
+    """
+    Determines the heading level based on the font style (font name and font size) of headings in the document.
+
+    The function iterates over each page and each node of the document to identify headings and collects their font
+    styles. These styles are then sorted by font size in descending order, assuming that larger font sizes correspond
+    to higher-level headings. Finally, the headings are assigned levels based on their font styles.
+
+    :param document: The input document object, containing content structured into pages. Each page consists
+        of nodes representing portions of text.
+
+    :return: The document with updated heading levels assigned to each heading node.
+    """
+    heading_styles = []
+
+    for page in document.content:
+        for node in page.content:
+            if node.category == "heading" and node.marks:
+                marks = node.marks
+                font_name = None
+                font_size = None
+
+                for mark in marks:
+                    if mark.category == 'textStyle':
+                        font_name = mark.font.name
+                        font_size = mark.font.size
+
+                if font_name and font_size:
+                    # Avoid duplicates: only add new styles
+                    existing_style = next((style for style in heading_styles if
+                                           style['font_name'] == font_name and style['font_size'] == font_size), None)
+                    if not existing_style:
+                        heading_styles.append({
+                            'font_name': font_name,
+                            'font_size': font_size,
+                            'occurrences': 1
+                        })
+                    else:
+                        existing_style['occurrences'] += 1
+
+    if not heading_styles:
+        return document
+
+    # Sort the styles by font size in descending order
+    heading_styles = sorted(heading_styles, key=lambda x: x['font_size'], reverse=True)
+
+    largest_font_style = heading_styles[0] if heading_styles else None
+    if largest_font_style and largest_font_style['occurrences'] == 1:
+        heading_styles = heading_styles[1:]
+    # Assign levels to the sorted heading styles
+    assigned_levels = assign_heading_levels(heading_styles)
+
+    for page in document.content:
+        for node in page.content:
+            if node.category == "heading" and node.marks:
+                marks = node.marks
+                font_name = None
+                font_size = None
+
+                for mark in marks:
+                    if mark.category == 'textStyle':
+                        font_name = mark.font.name
+                        font_size = mark.font.size
+
+                if font_name and font_size:
+                    if (largest_font_style and
+                            largest_font_style['font_name'] == font_name and
+                            largest_font_style['font_size'] == font_size):
+                        node.category = "title"
+                    else:
+                        level = 4
+                        for style in assigned_levels:
+                            if style['font_name'] == font_name and style['font_size'] == font_size:
+                                level = style['level']
+                                break
+                        node.attributes.level = level
+
+    return document
+
+
+def assign_heading_levels(heading_styles: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Assigns heading levels to a list of heading styles based on font size and frequency.
+
+    :param heading_styles: A list of dictionaries where each dictionary contains
+                            information about a heading's font name ('font_name')
+                            and its font size ('font_size').
+
+    :return: A list of dictionaries, where each dictionary includes 'font_name',
+            'font_size', and the assigned 'level' (from 1 to 4).
+            Level 1 is for the largest and level 4 is for the smallest.
+    """
+    # Count the number of occurrences for each font
+    font_count = Counter([font['font_name'] for font in heading_styles])
+
+    # Identify the most common font (likely the main heading font)
+    main_font = font_count.most_common(1)[0][0]
+    # Sort the main font headings by decreasing font size
+    main_fonts = sorted([f for f in heading_styles if f['font_name'] == main_font],
+                        key=lambda x: -x['font_size'])
+    # Collect other fonts that are not the main font
+    other_fonts = [f for f in heading_styles if f['font_name'] != main_font]
+    levels_assigned = {}
+    # Assign levels (1-4) to the main font headings based on font size
+    for i, font in enumerate(main_fonts):
+        level = min(i + 1, 4)
+        levels_assigned[(font['font_name'], font['font_size'])] = level
+
+    # For other fonts, assign levels based on font size comparisons
+    for font in other_fonts:
+        size = font['font_size']
+        same_size_fonts = [f for f in levels_assigned if f[1] == size]
+
+        # If the same size exists, assign its level
+        if same_size_fonts:
+            level = levels_assigned[same_size_fonts[0]]
+        else:
+            # Otherwise, assign level based on size relative to existing main fonts
+            existing_sizes = sorted([f[1] for f in levels_assigned])
+
+            if size > existing_sizes[-1]:
+                level = 1
+            elif size < existing_sizes[0]:
+                level = 4
+            else:
+                for i in range(len(existing_sizes) - 1):
+                    if existing_sizes[i + 1] > size > existing_sizes[i]:
+                        mid_point = (existing_sizes[i] + existing_sizes[i + 1]) / 2
+                        # Ensure we select a font size for which a level is already assigned
+                        larger_font = next(f for f in levels_assigned if f[1] == existing_sizes[i + 1])
+                        smaller_font = next(f for f in levels_assigned if f[1] == existing_sizes[i])
+                        if size >= mid_point:
+                            level = levels_assigned[larger_font]
+                        else:
+                            level = levels_assigned[smaller_font]
+                        break
+
+        levels_assigned[(font['font_name'], font['font_size'])] = level
+
+    result = []
+    for font in heading_styles:
+        font_info = {
+            'font_name': font['font_name'],
+            'font_size': font['font_size'],
+            'level': levels_assigned[(font['font_name'], font['font_size'])]
+        }
+        result.append(font_info)
+
+    return result

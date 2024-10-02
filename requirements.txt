@@ -3,6 +3,7 @@ pymupdf==1.22.5
 numpy~=1.24.3
 requests==2.32.3
 fastapi~=0.111.0
-pydantic~=2.7.1
+pydantic~=2.9.0
 pydantic_settings~=2.2.1
 uvicorn==0.22.0
+parse-document-model==0.2.0
